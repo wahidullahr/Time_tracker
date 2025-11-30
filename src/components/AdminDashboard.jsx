@@ -5,7 +5,7 @@ import {
   getAllUsers, getAllCompanies, getAllTimeEntries, 
   createUser, updateUser, deleteUser,
   createCompany, updateCompany, deleteCompany
-} from '../services/firebase';
+} from '../services/supabase';
 import { exportToCSV } from '../utils/csvExport';
 import { generateExecutiveSummary } from '../services/gemini';
 import ManageEmployeeModal from './ManageEmployeeModal';

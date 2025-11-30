@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LogIn, Loader2, Lock } from 'lucide-react';
-import { getUserByAccessCode, signInAnonymous } from '../services/firebase';
+import { getUserByAccessCode, signInAnonymous } from '../services/supabase';
 
 const Login = ({ onLogin }) => {
   const [accessCode, setAccessCode] = useState('');

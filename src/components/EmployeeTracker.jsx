@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Square, Clock, LogOut, Sparkles, Loader2, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getAllCompanies, createTimeEntry, getTimeEntriesByUser, updateTimeEntry, deleteTimeEntry } from '../services/firebase';
+import { getAllCompanies, createTimeEntry, getTimeEntriesByUser, updateTimeEntry, deleteTimeEntry } from '../services/supabase';
 import { enhanceDescription } from '../services/gemini';
 import EditEntryModal from './EditEntryModal';
 
