@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Building2, FileText, LogOut, Plus, Edit2, Trash2, Shield, ShieldOff, Loader2, Download, Sparkles } from 'lucide-react';
+import { Users, Building2, FileText, LogOut, Plus, Edit2, Trash2, Shield, ShieldOff, Loader2, Download, Sparkles, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { 
   getAllUsers, getAllCompanies, getAllTimeEntries, 
@@ -8,6 +8,7 @@ import {
 } from '../services/supabase';
 import { exportToCSV } from '../utils/csvExport';
 import { generateExecutiveSummary } from '../services/gemini';
+import { sendTimesheetToClient, generateTimesheetHTML } from '../services/emailService';
 import ManageEmployeeModal from './ManageEmployeeModal';
 
 const AdminDashboard = () => {
@@ -156,6 +157,55 @@ const AdminDashboard = () => {
       ? 'all_time_entries.csv' 
       : `${selectedCompanyFilter}_time_entries.csv`;
     exportToCSV(filteredEntries, filename);
+  };
+
+  const handleSendToClient = () => {
+    if (selectedCompanyFilter === 'all') {
+      setError('Please select a specific company to send timesheet');
+      return;
+    }
+
+    const company = companies.find(c => c.name === selectedCompanyFilter);
+    
+    if (!company) {
+      setError('Company not found');
+      return;
+    }
+
+    if (!company.clientEmail) {
+      setError('This company does not have a client email configured. Please add it in the Companies tab.');
+      return;
+    }
+
+    try {
+      const totalHours = calculateTotalHours(filteredEntries);
+      
+      // Generate HTML and open in new tab for preview/print
+      const htmlContent = generateTimesheetHTML({
+        clientEmail: company.clientEmail,
+        clientReference: company.clientReference,
+        companyName: company.name,
+        timeEntries: filteredEntries,
+        totalHours
+      });
+      
+      const newWindow = window.open();
+      newWindow.document.write(htmlContent);
+      newWindow.document.close();
+      
+      // Also trigger mailto
+      sendTimesheetToClient({
+        clientEmail: company.clientEmail,
+        clientReference: company.clientReference,
+        companyName: company.name,
+        timeEntries: filteredEntries,
+        totalHours
+      });
+      
+    } catch (err) {
+      console.error('Error sending to client:', err);
+      setError(err.message || 'Failed to send timesheet');
+    }
   };
 
   const handleGenerateSummary = async () => {
@@ -481,7 +531,17 @@ const AdminDashboard = () => {
                   </select>
                 </div>
 
-                <div className="flex gap-2 w-full sm:w-auto">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={handleSendToClient}
+                    disabled={filteredEntries.length === 0 || selectedCompanyFilter === 'all'}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+                    title={selectedCompanyFilter === 'all' ? 'Select a specific company first' : 'Send timesheet to client'}
+                  >
+                    <Mail className="w-5 h-5" />
+                    <span className="hidden sm:inline">Send to Client</span>
+                    <span className="sm:hidden">Send</span>
+                  </button>
                   <button
                     onClick={handleGenerateSummary}
                     disabled={generatingSummary || filteredEntries.length === 0}
@@ -495,7 +555,8 @@ const AdminDashboard = () => {
                     ) : (
                       <>
                         <Sparkles className="w-5 h-5" />
-                        <span>AI Summary</span>
+                        <span className="hidden sm:inline">AI Summary</span>
+                        <span className="sm:hidden">AI</span>
                       </>
                     )}
                   </button>
@@ -505,7 +566,8 @@ const AdminDashboard = () => {
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-target"
                   >
                     <Download className="w-5 h-5" />
-                    <span>Export CSV</span>
+                    <span className="hidden sm:inline">Export CSV</span>
+                    <span className="sm:hidden">CSV</span>
                   </button>
                 </div>
               </div>
