@@ -27,6 +27,8 @@ const AdminDashboard = () => {
   
   // Company management
   const [newCompanyName, setNewCompanyName] = useState('');
+  const [newClientReference, setNewClientReference] = useState('');
+  const [newClientEmail, setNewClientEmail] = useState('');
   const [addingCompany, setAddingCompany] = useState(false);
   
   // AI Summary
@@ -117,8 +119,14 @@ const AdminDashboard = () => {
     
     setAddingCompany(true);
     try {
-      await createCompany({ name: newCompanyName.trim() });
+      await createCompany({ 
+        name: newCompanyName.trim(),
+        clientReference: newClientReference.trim() || null,
+        clientEmail: newClientEmail.trim() || null
+      });
       setNewCompanyName('');
+      setNewClientReference('');
+      setNewClientEmail('');
       await loadAllData();
     } catch (err) {
       console.error('Error adding company:', err);
@@ -339,20 +347,37 @@ const AdminDashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Company Management</h2>
 
             {/* Add Company Form */}
-            <div className="flex gap-3 mb-6">
-              <input
-                type="text"
-                value={newCompanyName}
-                onChange={(e) => setNewCompanyName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddCompany()}
-                placeholder="Enter company name"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-target"
-                disabled={addingCompany}
-              />
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input
+                  type="text"
+                  value={newCompanyName}
+                  onChange={(e) => setNewCompanyName(e.target.value)}
+                  placeholder="Company name *"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-target"
+                  disabled={addingCompany}
+                />
+                <input
+                  type="text"
+                  value={newClientReference}
+                  onChange={(e) => setNewClientReference(e.target.value)}
+                  placeholder="Client reference (optional)"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-target"
+                  disabled={addingCompany}
+                />
+                <input
+                  type="email"
+                  value={newClientEmail}
+                  onChange={(e) => setNewClientEmail(e.target.value)}
+                  placeholder="Client email (optional)"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-target"
+                  disabled={addingCompany}
+                />
+              </div>
               <button
                 onClick={handleAddCompany}
                 disabled={addingCompany || !newCompanyName.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-target"
               >
                 {addingCompany ? (
                   <>
@@ -372,21 +397,33 @@ const AdminDashboard = () => {
             {companies.length === 0 ? (
               <p className="text-center text-gray-500 py-8">No companies yet. Add your first company!</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {companies.map(company => (
                   <div
                     key={company.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <Building2 className="w-5 h-5 text-blue-600" />
                       </div>
-                      <span className="font-medium text-gray-900">{company.name}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 mb-1">{company.name}</h3>
+                        {company.clientReference && (
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Ref:</span> {company.clientReference}
+                          </p>
+                        )}
+                        {company.clientEmail && (
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Email:</span> {company.clientEmail}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <button
                       onClick={() => handleDeleteCompany(company.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="mt-3 md:mt-0 md:ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors self-end md:self-center"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

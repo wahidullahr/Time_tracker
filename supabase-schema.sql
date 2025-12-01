@@ -20,6 +20,8 @@ CREATE TABLE users (
 CREATE TABLE companies (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
+  client_reference TEXT,
+  client_email TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -149,6 +149,8 @@ export const createCompany = async (companyData) => {
       .from(TABLES.COMPANIES)
       .insert([{
         name: companyData.name || '',
+        client_reference: companyData.clientReference || null,
+        client_email: companyData.clientEmail || null,
         created_at: new Date().toISOString()
       }])
       .select();
@@ -173,6 +175,8 @@ export const getAllCompanies = async () => {
     return data.map(company => ({
       id: company.id,
       name: company.name,
+      clientReference: company.client_reference,
+      clientEmail: company.client_email,
       createdAt: company.created_at
     }));
   } catch (error) {
@@ -183,9 +187,14 @@ export const getAllCompanies = async () => {
 
 export const updateCompany = async (companyId, companyData) => {
   try {
+    const updateData = {};
+    if (companyData.name !== undefined) updateData.name = companyData.name;
+    if (companyData.clientReference !== undefined) updateData.client_reference = companyData.clientReference;
+    if (companyData.clientEmail !== undefined) updateData.client_email = companyData.clientEmail;
+    
     const { error } = await supabase
       .from(TABLES.COMPANIES)
-      .update({ name: companyData.name })
+      .update(updateData)
       .eq('id', companyId);
     
     if (error) throw error;
